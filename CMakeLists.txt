@@ -8,77 +8,94 @@ if(NOT CMAKE_BUILD_TYPE)
       "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif()
 
-if (NOT LLVM_BUILD_TYPE)
-  set(LLVM_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+# Packages
+find_package(LLVM-Wrapper REQUIRED)
+
+#if (NOT LLVM_BUILD_TYPE)
+#  set(LLVM_BUILD_TYPE ${CMAKE_BUILD_TYPE})
+#endif()
+#set(LLVM_CONFIG_EXECUTABLE ${CMAKE_SOURCE_DIR}/third_party/llvm-${LLVM_BUILD_TYPE}-install/bin/llvm-config)
+#if(NOT EXISTS ${LLVM_CONFIG_EXECUTABLE})
+#  message(FATAL_ERROR "llvm-config could not be found!")
+#endif()
+
+#find_path(ZSTD_LIBRARY_DIR
+#          NAMES libzstd.a libzstd.dylib libzstd.so libzstd.so.1
+#          HINTS /usr/local/lib /opt/homebrew/lib /usr/lib/x86_64-linux-gnu)
+
+#execute_process(
+#  COMMAND ${LLVM_CONFIG_EXECUTABLE} --includedir
+#  OUTPUT_VARIABLE LLVM_INCLUDEDIR
+#  OUTPUT_STRIP_TRAILING_WHITESPACE
+#)
+
+#execute_process(
+#  COMMAND ${LLVM_CONFIG_EXECUTABLE} --cppflags
+#  OUTPUT_VARIABLE LLVM_CXXFLAGS
+#  OUTPUT_STRIP_TRAILING_WHITESPACE
+#)
+
+if(MSVC)
+  set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} /EHs-c- /GR- /wd4141")
+else()
+  set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -fno-exceptions -fno-rtti -Wno-deprecated-enum-enum-conversion")
 endif()
-set(LLVM_CONFIG_EXECUTABLE ${CMAKE_SOURCE_DIR}/third_party/llvm-${LLVM_BUILD_TYPE}-install/bin/llvm-config)
-if(NOT EXISTS ${LLVM_CONFIG_EXECUTABLE})
-  message(FATAL_ERROR "llvm-config could not be found!")
-endif()
 
-find_path(ZSTD_LIBRARY_DIR
-          NAMES libzstd.a libzstd.dylib libzstd.so libzstd.so.1
-          HINTS /usr/local/lib /opt/homebrew/lib /usr/lib/x86_64-linux-gnu)
+#execute_process(
+#  COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs
+#  OUTPUT_VARIABLE LLVM_LIBS
+#  OUTPUT_STRIP_TRAILING_WHITESPACE
+#)
 
-execute_process(
-  COMMAND ${LLVM_CONFIG_EXECUTABLE} --includedir
-  OUTPUT_VARIABLE LLVM_INCLUDEDIR
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-
-execute_process(
-  COMMAND ${LLVM_CONFIG_EXECUTABLE} --cppflags
-  OUTPUT_VARIABLE LLVM_CXXFLAGS
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-
-set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -fno-exceptions -fno-rtti -Wno-deprecated-enum-enum-conversion")
-
-execute_process(
-  COMMAND ${LLVM_CONFIG_EXECUTABLE} --libs
-  OUTPUT_VARIABLE LLVM_LIBS
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-
-execute_process(
-  COMMAND ${LLVM_CONFIG_EXECUTABLE} --system-libs
-  OUTPUT_VARIABLE LLVM_SYSTEM_LIBS
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+#execute_process(
+#  COMMAND ${LLVM_CONFIG_EXECUTABLE} --system-libs
+#  OUTPUT_VARIABLE LLVM_SYSTEM_LIBS
+#  OUTPUT_STRIP_TRAILING_WHITESPACE
+#)
 set(LLVM_LIBS "${LLVM_LIBS} ${LLVM_SYSTEM_LIBS}")
 string(STRIP ${LLVM_LIBS} LLVM_LIBS)
 
-execute_process(
-  COMMAND ${LLVM_CONFIG_EXECUTABLE} --ldflags
-  OUTPUT_VARIABLE LLVM_LDFLAGS
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+#execute_process(
+#  COMMAND ${LLVM_CONFIG_EXECUTABLE} --ldflags
+#  OUTPUT_VARIABLE LLVM_LDFLAGS
+#  OUTPUT_STRIP_TRAILING_WHITESPACE
+#)
 
 set(PASS_LDFLAGS "${LLVM_LDFLAGS}")
-set(LLVM_LDFLAGS "${LLVM_LDFLAGS} -L ${ZSTD_LIBRARY_DIR}")
+#set(LLVM_LDFLAGS "${LLVM_LDFLAGS} -L ${ZSTD_LIBRARY_DIR}")
 
-execute_process(
-  COMMAND ${LLVM_CONFIG_EXECUTABLE} --bindir
-  OUTPUT_VARIABLE LLVM_BINDIR
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+#execute_process(
+#  COMMAND ${LLVM_CONFIG_EXECUTABLE} --bindir
+#  OUTPUT_VARIABLE LLVM_BINDIR
+#  OUTPUT_STRIP_TRAILING_WHITESPACE
+#)
 
-execute_process(
-  COMMAND ${LLVM_CONFIG_EXECUTABLE} --obj-root
-  OUTPUT_VARIABLE LLVM_BUILD
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+#execute_process(
+#  COMMAND ${LLVM_CONFIG_EXECUTABLE} --obj-root
+#  OUTPUT_VARIABLE LLVM_BUILD
+#  OUTPUT_STRIP_TRAILING_WHITESPACE
+#)
 
-set(ALIVE_SRCDIR "${CMAKE_SOURCE_DIR}/third_party/alive2")
-set(ALIVE_BUILDDIR "${CMAKE_SOURCE_DIR}/third_party/alive2-build")
-include_directories("${CMAKE_SOURCE_DIR}/third_party")
+#set(ALIVE_SRCDIR "${CMAKE_SOURCE_DIR}/third_party/alive2")
+#set(ALIVE_BUILDDIR "${CMAKE_SOURCE_DIR}/third_party/alive2-build")
+#include_directories("${CMAKE_SOURCE_DIR}/third_party")
+include_directories("${ALIVE_SRCDIR}/alive2")
 include_directories("${ALIVE_SRCDIR}")
 
-set(GTEST_CXXFLAGS "-DGTEST_HAS_RTTI=0")
-set(GTEST_INCLUDEDIR "${LLVM_BINDIR}/../include/llvm-gtest/")
-set(GTEST_LIBS "-lllvm_gtest_main -lllvm_gtest")
+#set(GTEST_CXXFLAGS "-DGTEST_HAS_RTTI=0")
+#set(GTEST_INCLUDEDIR "${LLVM_BINDIR}/../include/llvm-gtest/")
+#set(GTEST_LIBS "-lllvm_gtest_main -lllvm_gtest")
 
-set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -std=c++20")
+if(MSVC)
+  set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} /std:c++20")
+else()
+  set(LLVM_CXXFLAGS "${LLVM_CXXFLAGS} -std=c++20")
+endif()
+
+if(MSVC)
+  add_definitions(-DNOMINMAX)
+endif()
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LANGUAGE_STANDARD "c++20")
@@ -86,77 +103,77 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
   set(PASS_LDFLAGS "-Wl,-undefined,dynamic_lookup")
 endif()
 
-include_directories(include third_party/klee/include)
+include_directories(include "${KLEE_SRCDIR}/include")
 include_directories(include "${CMAKE_BINARY_DIR}/include")
 
 set(KLEE_EXPR_FILES
-  third_party/klee/lib/Expr/ArrayCache.cpp
-  third_party/klee/lib/Expr/Constraints.cpp
-  third_party/klee/lib/Expr/ExprBuilder.cpp
-  third_party/klee/lib/Expr/Expr.cpp
-  third_party/klee/lib/Expr/ExprEvaluator.cpp
-  third_party/klee/lib/Expr/ExprPPrinter.cpp
-  third_party/klee/lib/Expr/ExprSMTLIBPrinter.cpp
-  third_party/klee/lib/Expr/ExprUtil.cpp
-  third_party/klee/lib/Expr/ExprVisitor.cpp
-  third_party/klee/lib/Expr/Lexer.cpp
-  third_party/klee/lib/Expr/Parser.cpp
-  third_party/klee/lib/Expr/Updates.cpp
+  "${KLEE_SRCDIR}/lib/Expr/ArrayCache.cpp"
+  "${KLEE_SRCDIR}/lib/Expr/Constraints.cpp"
+  "${KLEE_SRCDIR}/lib/Expr/ExprBuilder.cpp"
+  "${KLEE_SRCDIR}/lib/Expr/Expr.cpp"
+  "${KLEE_SRCDIR}/lib/Expr/ExprEvaluator.cpp"
+  "${KLEE_SRCDIR}/lib/Expr/ExprPPrinter.cpp"
+  "${KLEE_SRCDIR}/lib/Expr/ExprSMTLIBPrinter.cpp"
+  "${KLEE_SRCDIR}/lib/Expr/ExprUtil.cpp"
+  "${KLEE_SRCDIR}/lib/Expr/ExprVisitor.cpp"
+  "${KLEE_SRCDIR}/lib/Expr/Lexer.cpp"
+  "${KLEE_SRCDIR}/lib/Expr/Parser.cpp"
+  "${KLEE_SRCDIR}/lib/Expr/Updates.cpp"
 )
 
 add_library(kleeExpr STATIC
   ${KLEE_EXPR_FILES}
 )
 
-find_path(HIREDIS_INCLUDE_DIR
-  NAMES
-  hiredis/hiredis.h
-  PATHS
-  third_party/hiredis-install/include
-  NO_DEFAULT_PATH)
+#find_path(HIREDIS_INCLUDE_DIR
+#  NAMES
+#  hiredis/hiredis.h
+#  PATHS
+#  third_party/hiredis-install/include
+#  NO_DEFAULT_PATH)
 
 include_directories(${HIREDIS_INCLUDE_DIR}/hiredis)
 
-find_library(HIREDIS_LIBRARY
-  NAMES
-  hiredis
-  PATHS
-  third_party/hiredis-install/lib
-  NO_DEFAULT_PATH)
+#find_library(HIREDIS_LIBRARY
+#  NAMES
+#  hiredis
+#  PATHS
+#  third_party/hiredis-install/lib
+#  NO_DEFAULT_PATH)
 
 find_library(ALIVE_IR ir PATHS "${ALIVE_BUILDDIR}" NO_DEFAULT_PATH)
 if (ALIVE_IR)
   message(STATUS "Alive2 IR")
 else()
-  message(SEND_ERROR "Alive2 libir.a not found")
+  message(SEND_ERROR "Alive2 ir.lib not found")
 endif()
 
 find_library(ALIVE_SMT smt PATHS "${ALIVE_BUILDDIR}" NO_DEFAULT_PATH)
 if (ALIVE_SMT)
   message(STATUS "Alive2 SMT")
 else()
-  message(SEND_ERROR "Alive2 libsmt.a not found")
+  message(SEND_ERROR "Alive2 smt.lib not found")
 endif()
 
 find_library(ALIVE_TOOLS tools PATHS "${ALIVE_BUILDDIR}" NO_DEFAULT_PATH)
 if (ALIVE_TOOLS)
   message(STATUS "Alive2 TOOLS")
 else()
-  message(SEND_ERROR "Alive2 libtools.a not found")
+  message(SEND_ERROR "Alive2 tools.lib not found")
 endif()
 
 find_library(ALIVE_UTIL util PATHS "${ALIVE_BUILDDIR}" NO_DEFAULT_PATH)
 if (ALIVE_UTIL)
   message(STATUS "Alive2 UTIL")
 else()
-  message(SEND_ERROR "Alive2 libutil.a not found")
+  message(SEND_ERROR "Alive2 util.lib not found")
 endif()
 
-set(Z3 "${CMAKE_SOURCE_DIR}/third_party/z3-install/bin/z3")
-set(Z3_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/third_party/z3-install/include")
+set(Z3 "${DEPS_PATH}/bin")
+set(Z3_INCLUDE_DIR "${DEPS_PATH}/include")
 include_directories(${Z3_INCLUDE_DIR})
 
-find_library(Z3_LIBRARY z3 PATHS "${CMAKE_SOURCE_DIR}/third_party/z3-install/lib" NO_DEFAULT_PATH)
+find_library(Z3_LIBRARY z3 PATHS "${DEPS_PATH}/lib" NO_DEFAULT_PATH)
 if (Z3_LIBRARY)
   message(STATUS "Z3 shared lib: ${Z3_LIBRARY}")
 else()
@@ -267,79 +284,79 @@ set(SOUPER_SOURCES
   ${SOUPER_INFER_FILES}
   ${SOUPER_CODEGEN_FILES})
 
-add_library(souperPass SHARED
-  ${KLEE_EXPR_FILES}
-  ${SOUPER_SOURCES}
-  lib/Pass/Pass.cpp
-)
+#add_library(souperPass SHARED
+#  ${KLEE_EXPR_FILES}
+#  ${SOUPER_SOURCES}
+#  lib/Pass/Pass.cpp
+#)
 
-add_library(souperPassProfileAll SHARED
-  ${KLEE_EXPR_FILES}
-  ${SOUPER_SOURCES}
-  lib/Pass/Pass.cpp
-)
+#add_library(souperPassProfileAll SHARED
+#  ${KLEE_EXPR_FILES}
+#  ${SOUPER_SOURCES}
+#  lib/Pass/Pass.cpp
+#)
 
-target_compile_definitions(souperPassProfileAll PRIVATE DYNAMIC_PROFILE_ALL=1)
+#target_compile_definitions(souperPassProfileAll PRIVATE DYNAMIC_PROFILE_ALL=1)
 
-add_executable(souper
-  tools/souper.cpp
-)
+#add_executable(souper
+#  tools/souper.cpp
+#)
 
-add_executable(internal-solver-test
-  tools/internal-solver-test.cpp
-)
+#add_executable(internal-solver-test
+#  tools/internal-solver-test.cpp
+#)
 
-add_executable(lexer-test
-  tools/lexer-test.cpp
-)
+#add_executable(lexer-test
+#  tools/lexer-test.cpp
+#)
 
-add_executable(parser-test
-  tools/parser-test.cpp
-)
+#add_executable(parser-test
+#  tools/parser-test.cpp
+#)
 
-add_executable(souper-check
-  tools/souper-check.cpp
-)
+#add_executable(souper-check
+#  tools/souper-check.cpp
+#)
 
-add_executable(souper-interpret
-  tools/souper-interpret.cpp
-)
+#add_executable(souper-interpret
+#  tools/souper-interpret.cpp
+#)
 
-add_executable(count-insts
-  tools/count-insts.cpp
-)
+#add_executable(count-insts
+#  tools/count-insts.cpp
+#)
 
-add_executable(souper2llvm
-  tools/souper2llvm.cpp
-)
+#add_executable(souper2llvm
+#  tools/souper2llvm.cpp
+#)
 
-add_executable(extractor_tests
-  unittests/Extractor/ExtractorTests.cpp
-)
+#add_executable(extractor_tests
+#  unittests/Extractor/ExtractorTests.cpp
+#)
 
-add_executable(inst_tests
-  unittests/Inst/InstTests.cpp
-)
+#add_executable(inst_tests
+#  unittests/Inst/InstTests.cpp
+#)
 
-add_executable(parser_tests
-  unittests/Parser/ParserTests.cpp
-)
+#add_executable(parser_tests
+#  unittests/Parser/ParserTests.cpp
+#)
 
-add_executable(codegen_tests
-  unittests/Codegen/CodegenTests.cpp
-)
+#add_executable(codegen_tests
+#  unittests/Codegen/CodegenTests.cpp
+#)
 
-add_executable(interpreter_tests
-  unittests/Interpreter/InterpreterInfra.cpp
-  unittests/Interpreter/InterpreterTests.cpp)
+#add_executable(interpreter_tests
+#  unittests/Interpreter/InterpreterInfra.cpp
+#  unittests/Interpreter/InterpreterTests.cpp)
 
 set(LLVM_LDFLAGS "${LLVM_LDFLAGS}")
 
-add_executable(bulk_tests
-  unittests/Interpreter/InterpreterInfra.cpp
-  utils/gen-xfer-funcs/BulkTests.cpp
-  utils/gen-xfer-funcs/Verification.cpp)
-target_include_directories(bulk_tests PUBLIC "${CMAKE_SOURCE_DIR}/unittests/Interpreter")
+#add_executable(bulk_tests
+#  unittests/Interpreter/InterpreterInfra.cpp
+#  utils/gen-xfer-funcs/BulkTests.cpp
+#  utils/gen-xfer-funcs/Verification.cpp)
+#target_include_directories(bulk_tests PUBLIC "${CMAKE_SOURCE_DIR}/unittests/Interpreter")
 
 configure_file(
   ${CMAKE_SOURCE_DIR}/utils/gen-xfer-funcs/run_n.pl.in
@@ -371,18 +388,15 @@ configure_file(
   COPYONLY
 )
 
-foreach(target souper internal-solver-test lexer-test parser-test souper-check count-insts
-               souper2llvm souper-interpret
-               souperExtractor souperInfer souperInst souperKVStore souperParser
-               souperSMTLIB2 souperTool souperPass souperPassProfileAll kleeExpr
-               souperCodegen)
+foreach(target souperExtractor souperInfer souperInst souperKVStore souperParser
+               souperSMTLIB2 souperTool kleeExpr souperCodegen)
   set_target_properties(${target} PROPERTIES COMPILE_FLAGS "${LLVM_CXXFLAGS}")
   target_include_directories(${target} PRIVATE "${LLVM_INCLUDEDIR}")
 endforeach()
-foreach(target extractor_tests inst_tests parser_tests interpreter_tests bulk_tests codegen_tests)
-  set_target_properties(${target} PROPERTIES COMPILE_FLAGS "${GTEST_CXXFLAGS} ${LLVM_CXXFLAGS}")
-  target_include_directories(${target} PRIVATE "${LLVM_INCLUDEDIR}" "${GTEST_INCLUDEDIR}")
-endforeach()
+#foreach(target extractor_tests inst_tests parser_tests interpreter_tests bulk_tests codegen_tests)
+#  set_target_properties(${target} PROPERTIES COMPILE_FLAGS "${GTEST_CXXFLAGS} ${LLVM_CXXFLAGS}")
+#  target_include_directories(${target} PRIVATE "${LLVM_INCLUDEDIR}" "${GTEST_INCLUDEDIR}")
+#endforeach()
 
 # static
 target_link_libraries(kleeExpr ${LLVM_LIBS} ${LLVM_LDFLAGS})
@@ -396,25 +410,25 @@ target_link_libraries(souperTool souperExtractor souperSMTLIB2)
 target_link_libraries(souperCodegen ${LLVM_LIBS} ${LLVM_LDFLAGS})
 
 # dynamic
-target_link_libraries(souperCodegen ${PASS_LDFLAGS})
-target_link_libraries(souperPass ${PASS_LDFLAGS} ${HIREDIS_LIBRARY} ${ALIVE_LIBRARY} ${Z3_LIBRARY})
-target_link_libraries(souperPassProfileAll ${PASS_LDFLAGS} ${HIREDIS_LIBRARY} ${ALIVE_LIBRARY} ${Z3_LIBRARY})
+#target_link_libraries(souperCodegen ${PASS_LDFLAGS})
+#target_link_libraries(souperPass ${PASS_LDFLAGS} ${HIREDIS_LIBRARY} ${ALIVE_LIBRARY} ${Z3_LIBRARY})
+#target_link_libraries(souperPassProfileAll ${PASS_LDFLAGS} ${HIREDIS_LIBRARY} ${ALIVE_LIBRARY} ${Z3_LIBRARY})
 
 # executables
-target_link_libraries(souper souperExtractor souperKVStore souperParser souperSMTLIB2 souperTool kleeExpr ${HIREDIS_LIBRARY} ${ALIVE_LIBRARY} ${Z3_LIBRARY})
-target_link_libraries(internal-solver-test souperSMTLIB2)
-target_link_libraries(lexer-test souperParser)
-target_link_libraries(parser-test souperParser)
-target_link_libraries(souper-check souperTool souperExtractor souperKVStore souperSMTLIB2 souperParser ${HIREDIS_LIBRARY} ${ALIVE_LIBRARY} ${Z3_LIBRARY})
-target_link_libraries(souper-interpret souperTool souperExtractor souperKVStore souperSMTLIB2 souperParser ${HIREDIS_LIBRARY} ${ALIVE_LIBRARY} ${Z3_LIBRARY})
-target_link_libraries(count-insts souperParser)
-target_link_libraries(souper2llvm souperParser souperCodegen)
-target_link_libraries(extractor_tests souperExtractor souperParser ${GTEST_LIBS} ${ALIVE_LIBRARY})
-target_link_libraries(inst_tests souperInfer souperPass souperInst souperExtractor ${GTEST_LIBS} ${ALIVE_LIBRARY})
-target_link_libraries(parser_tests souperParser ${GTEST_LIBS} ${ALIVE_LIBRARY})
-target_link_libraries(codegen_tests souperCodegen souperInst ${GTEST_LIBS} ${ALIVE_LIBRARY})
-target_link_libraries(interpreter_tests souperInfer souperInst ${GTEST_LIBS} ${ALIVE_LIBRARY})
-target_link_libraries(bulk_tests souperInfer souperInst ${GTEST_LIBS} ${ALIVE_LIBRARY} ${Z3_LIBRARY})
+#target_link_libraries(souper souperExtractor souperKVStore souperParser souperSMTLIB2 souperTool kleeExpr ${HIREDIS_LIBRARY} ${ALIVE_LIBRARY} ${Z3_LIBRARY})
+#target_link_libraries(internal-solver-test souperSMTLIB2)
+#target_link_libraries(lexer-test souperParser)
+#target_link_libraries(parser-test souperParser)
+#target_link_libraries(souper-check souperTool souperExtractor souperKVStore souperSMTLIB2 souperParser ${HIREDIS_LIBRARY} ${ALIVE_LIBRARY} ${Z3_LIBRARY})
+#target_link_libraries(souper-interpret souperTool souperExtractor souperKVStore souperSMTLIB2 souperParser ${HIREDIS_LIBRARY} ${ALIVE_LIBRARY} ${Z3_LIBRARY})
+#target_link_libraries(count-insts souperParser)
+#target_link_libraries(souper2llvm souperParser souperCodegen)
+#target_link_libraries(extractor_tests souperExtractor souperParser ${GTEST_LIBS} ${ALIVE_LIBRARY})
+#target_link_libraries(inst_tests souperInfer souperPass souperInst souperExtractor ${GTEST_LIBS} ${ALIVE_LIBRARY})
+#target_link_libraries(parser_tests souperParser ${GTEST_LIBS} ${ALIVE_LIBRARY})
+#target_link_libraries(codegen_tests souperCodegen souperInst ${GTEST_LIBS} ${ALIVE_LIBRARY})
+#target_link_libraries(interpreter_tests souperInfer souperInst ${GTEST_LIBS} ${ALIVE_LIBRARY})
+#target_link_libraries(bulk_tests souperInfer souperInst ${GTEST_LIBS} ${ALIVE_LIBRARY} ${Z3_LIBRARY})
 
 set(TEST_SYNTHESIS "ON" CACHE STRING "Enable additional, computationally intensive synthesis tests")
 set(TEST_LONG_DURATION_SYNTHESIS "" CACHE STRING "Enable long duration (> 10 min) synthesis tests")
@@ -434,19 +448,19 @@ configure_file(
   ${CMAKE_BINARY_DIR}/souper-check-gdb.py
 )
 
-add_custom_target(check
-  COMMAND ${CMAKE_BINARY_DIR}/run_lit
-  DEPENDS extractor_tests inst_tests parser-test parser_tests profileRuntime souper souper-check souper-interpret souperPass souper2llvm souperPassProfileAll count-insts interpreter_tests bulk_tests codegen_tests
-  USES_TERMINAL)
+#add_custom_target(check
+#  COMMAND ${CMAKE_BINARY_DIR}/run_lit
+#  DEPENDS extractor_tests inst_tests parser-test parser_tests profileRuntime souper souper-check souper-interpret souperPass souper2llvm souperPassProfileAll count-insts interpreter_tests bulk_tests #codegen_tests
+#  USES_TERMINAL)
 
 # we want assertions even in release mode!
 string(REPLACE "-DNDEBUG" "" CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}")
 
-add_library(profileRuntime STATIC
-  runtime/souperPassProfile.c)
+#add_library(profileRuntime STATIC
+#  runtime/souperPassProfile.c)
 
-set(SOUPER_PASS ${CMAKE_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}souperPass${CMAKE_SHARED_LIBRARY_SUFFIX})
-set(SOUPER_PASS_PROFILE_ALL ${CMAKE_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}souperPassProfileAll${CMAKE_SHARED_LIBRARY_SUFFIX})
+#set(SOUPER_PASS ${CMAKE_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}souperPass${CMAKE_SHARED_LIBRARY_SUFFIX})
+#set(SOUPER_PASS_PROFILE_ALL ${CMAKE_BINARY_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}souperPassProfileAll${CMAKE_SHARED_LIBRARY_SUFFIX})
 set(PROFILE_LIBRARY ${CMAKE_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}profileRuntime${CMAKE_STATIC_LIBRARY_SUFFIX})
 configure_file(${CMAKE_SOURCE_DIR}/utils/compare_pruning_output.in ${CMAKE_BINARY_DIR}/compare_pruning_output @ONLY)
 configure_file(${CMAKE_SOURCE_DIR}/utils/reduce.in ${CMAKE_BINARY_DIR}/reduce @ONLY)
