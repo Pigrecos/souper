@@ -559,12 +559,14 @@ void Inst::Profile(llvm::FoldingSetNodeID &ID) const {
     ID.AddPointer(Op);
 }
 
-#ifndef NDEBUG
-void Inst::Print() {
+char *Inst::Print() {
+  std::string Str;
+  llvm::raw_string_ostream OS(Str);
   ReplacementContext RC;
-  RC.printInst(this, llvm::errs(), true);
+  RC.printInst(this, OS, true);
+  OS.flush();
+  return _strdup(Str.c_str());
 }
-#endif
 
 Inst *InstContext::getConst(const llvm::APInt &Val) {
   llvm::FoldingSetNodeID ID;

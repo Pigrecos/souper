@@ -59,6 +59,11 @@ public:
   Inst *getDataflowConditions(Inst *I);
   Inst *getUBInstCondition(Inst *Root);
 
+  Inst *GetCandidateExprForReplacement(const BlockPCs &BPCs,
+                                       const std::vector<InstMapping> &PCs,
+                                       InstMapping Mapping, Inst *Precondition,
+                                       bool Negate, bool DropUB);
+
 protected:
   InstContext *LIC;
 
@@ -102,9 +107,7 @@ protected:
   Inst *lshrExactUB(Inst *I);
   Inst *ashrExactUB(Inst *I);
 
-  Inst *GetCandidateExprForReplacement(
-         const BlockPCs &BPCs, const std::vector<InstMapping> &PCs,
-         InstMapping Mapping, Inst *Precondition, bool Negate, bool DropUB);
+ 
 };
 
 std::string BuildQuery(InstContext &IC, const BlockPCs &BPCs,
